@@ -7,10 +7,15 @@ module Filterfind
     end
 
     def parse
-      opt_hash = {}
+      opt_hash = { regexes: [] }
 
       parser = OptionParser.new do |opts|
         opts.banner = 'Usage: filterfind [options]'
+
+        opts.on('-e [REGEX]', String,
+          'REGEX must match a line in a file') do |regex|
+          opt_hash[:regexes] << regex
+        end
       end
 
       parser.parse(@unparsed_args)
