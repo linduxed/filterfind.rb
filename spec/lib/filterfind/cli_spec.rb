@@ -30,13 +30,14 @@ module Filterfind
 
       it 'forwards a provided options-hash to the output generator' do
         with_stubbed_stdout do
+          parser = double(parse: {})
+          allow(ArgumentParser).to receive(:new).and_return(parser)
           silent_output = double(:silent_output)
           allow(silent_output).to receive(:lines)
-          empty_args = []
-          args_and_options = { args: empty_args, foo: 'foo' }
+          options = { foo: 'foo' }
           allow(CommandLineOutput).to receive(:new).and_return(silent_output)
 
-          CLI.new(args_and_options).run
+          CLI.new(options).run
 
           expect(CommandLineOutput).to have_received(:new).with(foo: 'foo')
         end
