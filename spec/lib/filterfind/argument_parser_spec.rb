@@ -36,6 +36,26 @@ module Filterfind
             expect(parsed_arguments).to eq(expected_hash)
           end
         end
+
+        describe '"-i"' do
+          it 'adds a regex string to a regex list in the output hash' do
+            args = %w[-i foobar]
+            expected_hash = { case_insensitive_regexes: ['foobar'] }
+
+            parsed_arguments = ArgumentParser.new(args).parse
+
+            expect(parsed_arguments).to eq(expected_hash)
+          end
+
+          it 'adds multiple regexes when flag is used multiple times' do
+            args = %w[-i foo -i bar -i quux]
+            expected_hash = { case_insensitive_regexes: %w[foo bar quux] }
+
+            parsed_arguments = ArgumentParser.new(args).parse
+
+            expect(parsed_arguments).to eq(expected_hash)
+          end
+        end
       end
     end
   end
