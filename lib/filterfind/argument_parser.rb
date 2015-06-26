@@ -12,10 +12,13 @@ module Filterfind
       opt_hash = {}
 
       parser = OptionParser.new do |opts|
-        opts.banner = 'Usage: filterfind [-e REGEX] [-i REGEX] [options]'
+        opts.banner = 'Usage: filterfind [[-e REGEX] ...] [[-i REGEX] ...] '
 
-        opts.on('-e [REGEX]', String,
-          'REGEX must match a line in a file') do |regex|
+        opts.on(
+          '-e [REGEX]',
+          String,
+          'REGEX must match a line in a file. Can be used multiple times.'
+        ) do |regex|
           if opt_hash[:regexes]
             opt_hash[:regexes] << regex
           else
@@ -23,8 +26,12 @@ module Filterfind
           end
         end
 
-        opts.on('-i [REGEX]', String,
-          'REGEX must match a line in a file (case insensitive)') do |regex|
+        opts.on(
+          '-i [REGEX]',
+          String,
+          'REGEX must match a line in a file (case insensitive). ' \
+          'Can be used multiple times.'
+        ) do |regex|
           if opt_hash[:case_insensitive_regexes]
             opt_hash[:case_insensitive_regexes] << regex
           else
