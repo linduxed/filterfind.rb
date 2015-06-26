@@ -18,11 +18,11 @@ module Filterfind
 
       it 'forwards arguments to a parser' do
         with_stubbed_stdout do
-          parser = double(parse: {})
+          parser = double(:parser, parse: {})
           allow(ArgumentParser).to receive(:new).and_return(parser)
           input_args = %w[-n 3]
 
-          CLI.new({ args: input_args }).run
+          CLI.new(args: input_args).run
 
           expect(ArgumentParser).to have_received(:new).with(input_args)
         end
