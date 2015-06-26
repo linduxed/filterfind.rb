@@ -24,7 +24,7 @@ module Filterfind
 
             parsed_arguments = ArgumentParser.new(args).parse
 
-            expect(parsed_arguments).to eq(expected_hash)
+            expect(parsed_arguments).to include(expected_hash)
           end
 
           it 'adds multiple regexes when flag is used multiple times' do
@@ -33,7 +33,7 @@ module Filterfind
 
             parsed_arguments = ArgumentParser.new(args).parse
 
-            expect(parsed_arguments).to eq(expected_hash)
+            expect(parsed_arguments).to include(expected_hash)
           end
         end
 
@@ -44,7 +44,7 @@ module Filterfind
 
             parsed_arguments = ArgumentParser.new(args).parse
 
-            expect(parsed_arguments).to eq(expected_hash)
+            expect(parsed_arguments).to include(expected_hash)
           end
 
           it 'adds multiple regexes when flag is used multiple times' do
@@ -53,7 +53,7 @@ module Filterfind
 
             parsed_arguments = ArgumentParser.new(args).parse
 
-            expect(parsed_arguments).to eq(expected_hash)
+            expect(parsed_arguments).to include(expected_hash)
           end
         end
 
