@@ -56,6 +56,10 @@ module Filterfind
             expect(parsed_arguments).to eq(expected_hash)
           end
         end
+
+        describe '"-d"' do
+          it 'allows adding dotfiles into filename list when finding files'
+        end
       end
     end
   end
