@@ -60,6 +60,16 @@ module Filterfind
         describe '"-d"' do
           it 'allows adding dotfiles into filename list when finding files'
         end
+
+        context 'no regex input flags were used' do
+          it 'raises an error' do
+            args = []
+
+            expect do
+              ArgumentParser.new(args).parse
+            end.to raise_error(NoRegexesProvided)
+          end
+        end
       end
     end
   end

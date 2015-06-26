@@ -28,7 +28,7 @@ module Filterfind
     def handle_error(error)
       case error
       when OptionParser::InvalidOption, OptionParser::MissingArgument,
-        OptionParser::InvalidArgument
+        OptionParser::InvalidArgument, NoRegexesProvided
         $stderr.puts error.message
         exit EX_USAGE
       else
