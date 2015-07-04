@@ -1,7 +1,9 @@
 require 'optparse'
+require 'find'
 
 module Filterfind
   class NoRegexesProvided < StandardError; end
+  class InvalidPathArgument < StandardError; end
 
   class ArgumentParser
     def initialize(unparsed_args)
@@ -12,7 +14,8 @@ module Filterfind
       opt_hash = {}
 
       parser = OptionParser.new do |opts|
-        opts.banner = 'Usage: filterfind [[-e REGEX] ...] [[-i REGEX] ...] '
+        opts.banner = 'Usage: filterfind [[-e REGEX] ...] [[-i REGEX] ...] ' \
+          'PATH ...'
 
         opts.on(
           '-e [REGEX]',
@@ -40,13 +43,13 @@ module Filterfind
         end
       end
 
-      parser.parse(@unparsed_args)
+      non_flag_args = parser.permute(@unparsed_args)
 
       unless regexes_present?(opt_hash)
         raise(NoRegexesProvided, 'No regular expressions provided.')
       end
 
-      opt_hash
+      opts_with_filenames(opt_hash, non_flag_args)
     rescue
       $stderr.puts parser.banner
       raise
@@ -56,6 +59,30 @@ module Filterfind
 
     def regexes_present?(hash)
       hash.key?(:regexes) || hash.key?(:case_insensitive_regexes)
+    end
+
+    def opts_with_filenames(opt_hash, paths)
+      if paths.empty?
+        opt_hash.merge(filenames: recursively_find_all_files_in_cwd)
+      else
+        opt_hash.merge(filenames: check_all_paths_exist(paths))
+      end
+    end
+
+    def recursively_find_all_files_in_cwd
+      Find.find('.').reject { |path| FileTest.directory?(path) }
+    end
+
+    def check_all_paths_exist(paths)
+      bad_paths = paths.reduce([]) do |bad, path|
+        File.exist?(path) ? bad : bad << path
+      end
+
+      if bad_paths.empty?
+        paths
+      else
+        raise(InvalidPathArgument, "invalid paths: #{bad_paths.join(', ')}")
+      end
     end
   end
 end

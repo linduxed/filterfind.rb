@@ -71,6 +71,47 @@ module Filterfind
           end
         end
       end
+
+      describe 'trailing path arguments' do
+        context 'no paths provided' do
+          it 'adds all files recursively from working dir to output hash' do
+            args = %w[-e some_regex]
+            list_of_filenames = %w[foo_file bar_file baz_file]
+            allow(Find).to receive(:find).and_return(list_of_filenames)
+            allow(FileTest).to receive(:directory?).and_return(false)
+            expected_hash = { filenames: list_of_filenames }
+
+            parsed_arguments = ArgumentParser.new(args).parse
+
+            expect(Find).to have_received(:find).with('.')
+            expect(parsed_arguments).to include(expected_hash)
+          end
+        end
+
+        context 'valid paths provided' do
+          it 'adds the provided paths (recursively if dirs) to output hash' do
+            args = %w[-e some_regex foo_file bar_file]
+            list_of_filenames = %w[foo_file bar_file]
+            allow(File).to receive(:exist?).and_return(true)
+            expected_hash = { filenames: list_of_filenames }
+
+            parsed_arguments = ArgumentParser.new(args).parse
+
+            expect(parsed_arguments).to include(expected_hash)
+          end
+        end
+
+        context 'invalid paths provided' do
+          it 'raises an error' do
+            args = %w[-e foobar invalid_file]
+            allow(File).to receive(:exist?).and_return(false)
+
+            expect do
+              ArgumentParser.new(args).parse
+            end.to raise_error(InvalidPathArgument)
+          end
+        end
+      end
     end
   end
 end
