@@ -8,7 +8,7 @@ module Filterfind
     end
 
     def run
-      $stdout.puts CommandLineOutput.new(merged_options).lines
+      $stdout.print CommandLineOutput.new(merged_options).lines
     rescue => error
       handle_error(error)
     end
