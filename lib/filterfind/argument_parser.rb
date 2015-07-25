@@ -49,6 +49,7 @@ module Filterfind
         raise(NoRegexesProvided, 'No regular expressions provided.')
       end
 
+      add_regex_key_if_missing!(opt_hash)
       opts_with_filenames(opt_hash, non_flag_args)
     rescue
       $stderr.puts parser.banner
@@ -59,6 +60,12 @@ module Filterfind
 
     def regexes_present?(hash)
       hash.key?(:regexes) || hash.key?(:case_insensitive_regexes)
+    end
+
+    def add_regex_key_if_missing!(opt_hash)
+      [:regexes, :case_insensitive_regexes].each do |key|
+        opt_hash[key] = [] if opt_hash[key].nil?
+      end
     end
 
     def opts_with_filenames(opt_hash, paths)
