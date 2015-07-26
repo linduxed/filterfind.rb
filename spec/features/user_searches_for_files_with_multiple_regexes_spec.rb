@@ -25,9 +25,7 @@ describe 'Searching for files with multiple regexes' do
       expect(executable.error).to be_empty, executable.error
       expect(executable.lines).to eq(expected_output_lines)
 
-      [matching_file, partially_matching_file, not_matching_file].each do |file|
-        file.delete
-      end
+      [matching_file, partially_matching_file, not_matching_file].each(&:delete)
     end
 
     it 'returns no lines of output if no regexes matched' do
