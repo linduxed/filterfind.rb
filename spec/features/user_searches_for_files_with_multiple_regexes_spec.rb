@@ -30,7 +30,20 @@ describe 'Searching for files with multiple regexes' do
       end
     end
 
-    it 'returns empty output if no regexes matched'
+    it 'returns no lines of output if no regexes matched' do
+      file_without_foobar = Tempfile.new('no_foobar')
+      file_without_foobar.write("baz\nquux")
+      file_without_foobar.close
+
+      executable = Executable.run(
+        '-e "foobar" ' + "#{file_without_foobar.path}"
+      )
+
+      expect(executable.error).to be_empty, executable.error
+      expect(executable.lines).to eq([])
+
+      file_without_foobar.delete
+    end
   end
 
   context 'no file paths provided as arguments' do
