@@ -29,5 +29,17 @@ describe 'Searching for files with multiple regexes' do
         file.delete
       end
     end
+
+    it 'returns empty output if no regexes matched'
+  end
+
+  context 'no file paths provided as arguments' do
+    context 'no files present in working directory' do
+      it 'returns empty output'
+    end
+
+    context 'files present in working directory' do
+      it 'returns filenames of the files where all regexes matched'
+    end
   end
 end

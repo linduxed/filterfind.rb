@@ -89,6 +89,10 @@ module Filterfind
         end
 
         context 'valid paths provided' do
+          context 'directory provided' do
+            it 'recursively adds all files in dir and subdirs'
+          end
+
           it 'adds the provided paths (recursively if dirs) to output hash' do
             args = %w[-e some_regex foo_file bar_file]
             list_of_filenames = %w[foo_file bar_file]
