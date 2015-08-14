@@ -59,7 +59,24 @@ module Filterfind
 
         describe '"-d"' do
           context 'when not used' do
-            it 'does not add dotfiles into filename list when finding files'
+            it 'does not add dotfiles into filename list when finding files' do
+              Dir.mktmpdir do |wrapping_dir|
+                args = ['-e', 'some_regex', wrapping_dir]
+                dotfile = Tempfile.new('.dotfile', wrapping_dir)
+                dotfile.close
+                regular_file = Tempfile.new('regular_file', wrapping_dir)
+                regular_file.close
+
+                parsed_arguments = ArgumentParser.new(args).parse
+
+                expect(parsed_arguments.fetch(:filenames)).to include(
+                  regular_file.path)
+                expect(parsed_arguments.fetch(:filenames)).not_to include(
+                  dotfile.path)
+
+                [dotfile, regular_file].each(&:delete)
+              end
+            end
           end
 
           it 'adds dotfiles into filename list when finding files'
