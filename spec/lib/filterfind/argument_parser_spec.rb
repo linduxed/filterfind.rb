@@ -94,7 +94,23 @@ module Filterfind
 
         context 'valid paths provided' do
           context 'directory provided' do
-            it 'recursively adds all files in dir and subdirs'
+            it 'recursively adds all files in dir and subdirs' do
+              Dir.mktmpdir do |wrapping_dir|
+                args = ['-e', 'some_regex', wrapping_dir]
+                first_file = Tempfile.new('first', wrapping_dir)
+                first_file.close
+                second_file = Tempfile.new('second', wrapping_dir)
+                second_file.close
+
+                parsed_arguments = ArgumentParser.new(args).parse
+
+                expect(parsed_arguments).to include(
+                  filenames: [first_file.path, second_file.path]
+                )
+
+                [first_file, second_file].each(&:delete)
+              end
+            end
           end
 
           it 'adds the provided paths (recursively if dirs) to output hash' do
