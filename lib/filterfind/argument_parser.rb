@@ -12,6 +12,7 @@ module Filterfind
 
     def parse
       opt_hash = {}
+      dotfiles_allowed = false
 
       parser = OptionParser.new do |opts|
         opts.banner = 'Usage: filterfind [[-e REGEX] ...] [[-i REGEX] ...] ' \
@@ -50,7 +51,7 @@ module Filterfind
       end
 
       add_regex_key_if_missing!(opt_hash)
-      opts_with_filenames(opt_hash, non_flag_args)
+      opts_with_filenames(opt_hash, non_flag_args, dotfiles_allowed)
     rescue
       $stderr.puts parser.banner
       raise
@@ -68,11 +69,21 @@ module Filterfind
       end
     end
 
-    def opts_with_filenames(opt_hash, paths)
-      if paths.empty?
-        opt_hash.merge(filenames: recursively_find_all_files_in_cwd)
+    def opts_with_filenames(opt_hash, paths, dotfiles_allowed)
+      filenames = all_filenames_in_cwd_or_expand_provided_paths(paths)
+
+      if dotfiles_allowed
+        opt_hash.merge(filenames: filenames)
       else
-        opt_hash.merge(filenames: check_and_expand_paths(paths))
+        opt_hash.merge(filenames: reject_dot_paths(filenames))
+      end
+    end
+
+    def all_filenames_in_cwd_or_expand_provided_paths(paths)
+      if paths.empty?
+        recursively_find_all_files_in_cwd
+      else
+        check_and_expand_paths(paths)
       end
     end
 
@@ -107,6 +118,10 @@ module Filterfind
 
     def reject_directory_paths(paths)
       paths.reject { |path| FileTest.directory?(path) }
+    end
+
+    def reject_dot_paths(paths)
+      paths.reject { |path| path =~ %r(/\..+) }
     end
   end
 end
