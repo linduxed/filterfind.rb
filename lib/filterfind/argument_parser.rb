@@ -77,7 +77,7 @@ module Filterfind
     end
 
     def recursively_find_all_files_in_cwd
-      Find.find('.').reject { |path| FileTest.directory?(path) }
+      reject_directory_paths(Find.find('.'))
     end
 
     def check_all_paths_exist(paths)
@@ -90,6 +90,9 @@ module Filterfind
       else
         raise(InvalidPathArgument, "invalid paths: #{bad_paths.join(', ')}")
       end
+
+    def reject_directory_paths(paths)
+      paths.reject { |path| FileTest.directory?(path) }
     end
   end
 end
