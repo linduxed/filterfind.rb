@@ -59,6 +59,10 @@ module Filterfind
 
         describe '"-d"' do
           context 'when not used' do
+            context 'user provides dot paths as arguments' do
+              it 'adds regular files from provided dot path'
+            end
+
             it 'does not add dotfiles into filename list when finding files' do
               Dir.mktmpdir do |wrapping_dir|
                 args = ['-e', 'some_regex', wrapping_dir]
