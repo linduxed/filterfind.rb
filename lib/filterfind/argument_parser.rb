@@ -72,7 +72,7 @@ module Filterfind
       if paths.empty?
         opt_hash.merge(filenames: recursively_find_all_files_in_cwd)
       else
-        opt_hash.merge(filenames: check_all_paths_exist(paths))
+        opt_hash.merge(filenames: check_and_expand_paths(paths))
       end
     end
 
@@ -80,16 +80,30 @@ module Filterfind
       reject_directory_paths(Find.find('.'))
     end
 
+    def check_and_expand_paths(paths)
+      check_all_paths_exist(paths)
+      paths_with_directories_expanded(paths)
+    end
+
     def check_all_paths_exist(paths)
       bad_paths = paths.reduce([]) do |bad, path|
         File.exist?(path) ? bad : bad << path
       end
 
-      if bad_paths.empty?
-        paths
-      else
+      unless bad_paths.empty?
         raise(InvalidPathArgument, "invalid paths: #{bad_paths.join(', ')}")
       end
+    end
+
+    def paths_with_directories_expanded(paths)
+      paths.map do |path|
+        if FileTest.directory?(path)
+          reject_directory_paths(Find.find(path))
+        else
+          path
+        end
+      end.flatten
+    end
 
     def reject_directory_paths(paths)
       paths.reject { |path| FileTest.directory?(path) }
