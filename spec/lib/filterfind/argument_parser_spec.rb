@@ -58,7 +58,11 @@ module Filterfind
         end
 
         describe '"-d"' do
-          it 'allows adding dotfiles into filename list when finding files'
+          context 'when not used' do
+            it 'does not add dotfiles into filename list when finding files'
+          end
+
+          it 'adds dotfiles into filename list when finding files'
         end
 
         context 'no regex input flags were used' do
