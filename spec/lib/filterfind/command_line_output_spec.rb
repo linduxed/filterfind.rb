@@ -11,6 +11,37 @@ module Filterfind
     end
 
     describe '#lines' do
+      context 'one of the provided filenames points to an unparseable file' do
+        it 'skips parsing the file' do
+          pending
+          first_matching_file = 'first_good_path'
+          second_matching_file = 'second_good_path'
+          matching_and_invalid_byte_sequence = 'matching_but_bad'
+          allow(File).to receive(:readlines).with(first_matching_file)
+            .and_return(%w[perfectly matching])
+          allow(File).to receive(:readlines).with(second_matching_file)
+            .and_return(%w[perfectly matching])
+          allow(File).to receive(:readlines)
+            .with(matching_and_invalid_byte_sequence)
+            .and_return(['perfectly', 'matching', "\255"])
+
+          output = CommandLineOutput.new(
+            filenames: [
+              first_matching_file,
+              second_matching_file,
+              matching_and_invalid_byte_sequence
+            ],
+            regexes: %w[matching perfectly],
+            case_insensitive_regexes: []
+          )
+
+          expect { output.lines }.not_to raise_error
+          expect(output.lines).to eq(
+            "#{first_matching_file}\n#{second_matching_file}\n"
+          )
+        end
+      end
+
       it 'returns an empty string if there were no matching files' do
         first_no_match_file = 'first_bad_path'
         second_no_match_file = 'second_bad_path'
