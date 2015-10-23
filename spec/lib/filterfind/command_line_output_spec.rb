@@ -45,10 +45,10 @@ module Filterfind
       it 'returns an empty string if there were no matching files' do
         first_no_match_file = 'first_bad_path'
         second_no_match_file = 'second_bad_path'
-        allow(File).to receive(:readlines).with(first_no_match_file)
-          .and_return(%w[completely wrong])
-        allow(File).to receive(:readlines).with(second_no_match_file)
-          .and_return(%w[completely wrong])
+        allow(File).to receive(:open).with(first_no_match_file)
+          .and_yield(StringIO.new("completely\nwrong\n"))
+        allow(File).to receive(:open).with(second_no_match_file)
+          .and_yield(StringIO.new("completely\nwrong\n"))
 
         output_lines = CommandLineOutput.new(
           filenames: [
@@ -66,12 +66,12 @@ module Filterfind
         first_no_match_file = 'first_bad_path'
         second_no_match_file = 'second_bad_path'
         matching_file = 'matching_path'
-        allow(File).to receive(:readlines).with(first_no_match_file)
-          .and_return(%w[partially matching])
-        allow(File).to receive(:readlines).with(second_no_match_file)
-          .and_return(%w[completely wrong])
-        allow(File).to receive(:readlines).with(matching_file)
-          .and_return(%w[perfectly matching])
+        allow(File).to receive(:open).with(first_no_match_file)
+          .and_yield(StringIO.new("partially\nmatching\n"))
+        allow(File).to receive(:open).with(second_no_match_file)
+          .and_yield(StringIO.new("completely\nwrong\n"))
+        allow(File).to receive(:open).with(matching_file)
+          .and_yield(StringIO.new("perfectly\nmatching\n"))
 
         output_lines = CommandLineOutput.new(
           filenames: [

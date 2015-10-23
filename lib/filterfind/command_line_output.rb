@@ -24,25 +24,40 @@ module Filterfind
     private
 
     def filtered_filenames
-      @filtered_filenames ||= @filenames.select do |filename|
-        matching_regexes = []
-
-        File.readlines(filename).each do |line|
-          all_regexes.each do |regex|
-            matching_regexes << regex if line =~ regex
-          end
-        end
-
-        all_regexes_matched?(matching_regexes)
-      end
+      @filtered_filenames ||= FileFilter.new(@filenames, all_regexes).filter
     end
 
     def all_regexes
       @all_regexes ||= @regexes + @case_insensitive_regexes
     end
+  end
 
-    def all_regexes_matched?(regexes)
-      all_regexes - regexes == []
+  class FileFilter
+    def initialize(filenames, regexes)
+      @filenames = filenames
+      @regexes = regexes
+    end
+
+    def filter
+      @filenames.select do |filename|
+        File.open(filename) do |file|
+          matching_regexes = []
+
+          file.each_line do |line|
+            @regexes.each do |regex|
+              matching_regexes << regex if line =~ regex
+            end
+          end
+
+          all_regexes_matched?(matching_regexes)
+        end
+      end
+    end
+
+    private
+
+    def all_regexes_matched?(matched_regexes)
+      @regexes - matched_regexes == []
     end
   end
 end
