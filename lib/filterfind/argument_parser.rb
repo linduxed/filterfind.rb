@@ -12,7 +12,6 @@ module Filterfind
 
     def parse
       opt_hash = {}
-      dotfiles_allowed = false
 
       parser = OptionParser.new do |opts|
         opts.banner = 'Usage: filterfind [[-e REGEX] ...] [[-i REGEX] ...] ' \
@@ -50,8 +49,12 @@ module Filterfind
         raise(NoRegexesProvided, 'No regular expressions provided.')
       end
 
-      add_regex_key_if_missing!(opt_hash)
-      opts_with_filenames(opt_hash, non_flag_args, dotfiles_allowed)
+      populator = OptHashPopulator.new(
+        opt_hash: opt_hash,
+        paths: non_flag_args,
+        dotfiles_allowed: false
+      )
+      populator.hash_with_filenames
     rescue
       $stderr.puts parser.banner
       raise
@@ -62,20 +65,32 @@ module Filterfind
     def regexes_present?(hash)
       hash.key?(:regexes) || hash.key?(:case_insensitive_regexes)
     end
+  end
 
-    def add_regex_key_if_missing!(opt_hash)
-      [:regexes, :case_insensitive_regexes].each do |key|
-        opt_hash[key] = [] if opt_hash[key].nil?
+  class OptHashPopulator
+    def initialize(opt_hash:, paths:, dotfiles_allowed:)
+      @opt_hash = opt_hash
+      @paths = paths
+      @dotfiles_allowed = dotfiles_allowed
+
+      add_regex_key_if_missing
+    end
+
+    def hash_with_filenames
+      filenames = all_filenames_in_cwd_or_expand_provided_paths(@paths)
+
+      if @dotfiles_allowed
+        @opt_hash.merge(filenames: filenames)
+      else
+        @opt_hash.merge(filenames: reject_dot_paths(filenames))
       end
     end
 
-    def opts_with_filenames(opt_hash, paths, dotfiles_allowed)
-      filenames = all_filenames_in_cwd_or_expand_provided_paths(paths)
+    private
 
-      if dotfiles_allowed
-        opt_hash.merge(filenames: filenames)
-      else
-        opt_hash.merge(filenames: reject_dot_paths(filenames))
+    def add_regex_key_if_missing
+      [:regexes, :case_insensitive_regexes].each do |key|
+        @opt_hash[key] = [] if @opt_hash[key].nil?
       end
     end
 
