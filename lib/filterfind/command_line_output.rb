@@ -46,20 +46,20 @@ module Filterfind
 
     def filter
       @filenames.select do |filename|
-        File.open(filename) do |file|
-          matching_regexes = []
+        begin
+          File.open(filename) do |file|
+            matching_regexes = []
 
-          begin
-            file.each_line do |line|
-              @regexes.each do |regex|
-                matching_regexes << regex if line =~ regex
+              file.each_line do |line|
+                @regexes.each do |regex|
+                  matching_regexes << regex if line =~ regex
+                end
               end
-            end
-          rescue ArgumentError
-            false
-          end
 
-          all_regexes_matched?(matching_regexes)
+            all_regexes_matched?(matching_regexes)
+          end
+        rescue ArgumentError, Errno::ENOENT
+          false
         end
       end
     end
