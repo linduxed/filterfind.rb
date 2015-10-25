@@ -100,7 +100,22 @@ module Filterfind
             end
           end
 
-          it 'adds dotfiles into filename list when finding files'
+          context 'when used' do
+            it 'adds dotfiles into filename list when finding files' do
+              Dir.mktmpdir do |wrapping_dir|
+                args = ['-e', 'some_regex', '-d', wrapping_dir]
+                dotfile = Tempfile.new('.dotfile', wrapping_dir)
+                dotfile.close
+
+                parsed_arguments = ArgumentParser.new(args).parse
+
+                expect(parsed_arguments.fetch(:filenames)).to include(
+                  dotfile.path)
+
+                dotfile.delete
+              end
+            end
+          end
         end
 
         context 'no regex input flags were used' do

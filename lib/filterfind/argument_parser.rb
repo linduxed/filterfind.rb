@@ -18,6 +18,14 @@ module Filterfind
           'PATH ...'
 
         opts.on(
+          '-d',
+          '--dotfiles',
+          'Allows the inclusion of dotfiles in the list of parsed files.'
+        ) do
+          opt_hash[:dotfiles_allowed] = true
+        end
+
+        opts.on(
           '-e [REGEX]',
           String,
           'REGEX must match a line in a file. Can be used multiple times.'
@@ -52,7 +60,6 @@ module Filterfind
       populator = OptHashPopulator.new(
         opt_hash: opt_hash,
         paths: non_flag_args,
-        dotfiles_allowed: false
       )
       populator.hash_with_filenames
     rescue
@@ -68,10 +75,10 @@ module Filterfind
   end
 
   class OptHashPopulator
-    def initialize(opt_hash:, paths:, dotfiles_allowed:)
+    def initialize(opt_hash:, paths:)
       @opt_hash = opt_hash
       @paths = paths
-      @dotfiles_allowed = dotfiles_allowed
+      @dotfiles_allowed = opt_hash[:dotfiles_allowed] || false
 
       add_regex_key_if_missing
     end
