@@ -12,7 +12,6 @@ module Filterfind
 
     def parse
       opt_hash = {}
-      dotfiles_allowed = false
 
       parser = OptionParser.new do |opts|
         opts.banner = 'Usage: filterfind [[-e REGEX] ...] [[-i REGEX] ...] ' \
@@ -50,8 +49,12 @@ module Filterfind
         raise(NoRegexesProvided, 'No regular expressions provided.')
       end
 
-      add_regex_key_if_missing!(opt_hash)
-      opts_with_filenames(opt_hash, non_flag_args, dotfiles_allowed)
+      populator = OptHashPopulator.new(
+        opt_hash: opt_hash,
+        paths: non_flag_args,
+        dotfiles_allowed: false
+      )
+      populator.hash_with_filenames
     rescue
       $stderr.puts parser.banner
       raise
@@ -62,52 +65,75 @@ module Filterfind
     def regexes_present?(hash)
       hash.key?(:regexes) || hash.key?(:case_insensitive_regexes)
     end
+  end
 
-    def add_regex_key_if_missing!(opt_hash)
+  class OptHashPopulator
+    def initialize(opt_hash:, paths:, dotfiles_allowed:)
+      @opt_hash = opt_hash
+      @paths = paths
+      @dotfiles_allowed = dotfiles_allowed
+
+      add_regex_key_if_missing
+    end
+
+    def hash_with_filenames
+      if @paths.empty?
+        filenames = FileFinder.all_filenames_in_cwd(@dotfiles_allowed)
+      else
+        filenames = FileFinder.new(@paths, @dotfiles_allowed).expand_paths
+      end
+
+      @opt_hash.merge(filenames: filenames)
+    rescue FileFinder::InvalidPath => error
+      raise(InvalidPathArgument, error.message)
+    end
+
+    private
+
+    def add_regex_key_if_missing
       [:regexes, :case_insensitive_regexes].each do |key|
-        opt_hash[key] = [] if opt_hash[key].nil?
+        @opt_hash[key] = [] if @opt_hash[key].nil?
       end
     end
+  end
 
-    def opts_with_filenames(opt_hash, paths, dotfiles_allowed)
-      filenames = all_filenames_in_cwd_or_expand_provided_paths(paths)
+  class FileFinder
+    class InvalidPath < StandardError; end
 
-      if dotfiles_allowed
-        opt_hash.merge(filenames: filenames)
+    def self.all_filenames_in_cwd(dotfiles_allowed)
+      new(['.'], dotfiles_allowed).expand_paths
+    end
+
+    def initialize(paths, dotfiles_allowed)
+      @paths = paths
+      @dotfiles_allowed = dotfiles_allowed
+    end
+
+    def expand_paths
+      check_all_paths_exist
+      expanded_paths = paths_with_directories_expanded
+
+      if @dotfiles_allowed
+        expanded_paths
       else
-        opt_hash.merge(filenames: reject_dot_paths(filenames))
+        reject_dot_paths(expanded_paths)
       end
     end
 
-    def all_filenames_in_cwd_or_expand_provided_paths(paths)
-      if paths.empty?
-        recursively_find_all_files_in_cwd
-      else
-        check_and_expand_paths(paths)
-      end
-    end
+    private
 
-    def recursively_find_all_files_in_cwd
-      reject_directory_paths(Find.find('.'))
-    end
-
-    def check_and_expand_paths(paths)
-      check_all_paths_exist(paths)
-      paths_with_directories_expanded(paths)
-    end
-
-    def check_all_paths_exist(paths)
-      bad_paths = paths.reduce([]) do |bad, path|
+    def check_all_paths_exist
+      bad_paths = @paths.reduce([]) do |bad, path|
         File.exist?(path) ? bad : bad << path
       end
 
       unless bad_paths.empty?
-        raise(InvalidPathArgument, "invalid paths: #{bad_paths.join(', ')}")
+        raise(InvalidPath, "invalid paths: #{bad_paths.join(', ')}")
       end
     end
 
-    def paths_with_directories_expanded(paths)
-      paths.map do |path|
+    def paths_with_directories_expanded
+      @paths.map do |path|
         if FileTest.directory?(path)
           reject_directory_paths(Find.find(path))
         else
@@ -121,7 +147,7 @@ module Filterfind
     end
 
     def reject_dot_paths(paths)
-      paths.reject { |path| path =~ %r(/\..+) }
+      paths.reject { |path| path =~ %r{/\..+} }
     end
   end
 end
