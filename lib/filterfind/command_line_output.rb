@@ -43,10 +43,14 @@ module Filterfind
         File.open(filename) do |file|
           matching_regexes = []
 
-          file.each_line do |line|
-            @regexes.each do |regex|
-              matching_regexes << regex if line =~ regex
+          begin
+            file.each_line do |line|
+              @regexes.each do |regex|
+                matching_regexes << regex if line =~ regex
+              end
             end
+          rescue ArgumentError
+            false
           end
 
           all_regexes_matched?(matching_regexes)

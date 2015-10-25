@@ -13,7 +13,6 @@ module Filterfind
     describe '#lines' do
       context 'one of the provided filenames points to an unparseable file' do
         it 'skips parsing the file' do
-          pending
           first_matching_file = 'first_good_path'
           second_matching_file = 'second_good_path'
           matching_and_invalid_byte_sequence = 'matching_but_bad'
