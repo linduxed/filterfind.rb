@@ -14,8 +14,8 @@ module Filterfind
       opt_hash = {}
 
       parser = OptionParser.new do |opts|
-        opts.banner = 'Usage: filterfind [[-e REGEX] ...] [[-i REGEX] ...] ' \
-          'PATH ...'
+        opts.banner = 'Usage: filterfind [-d] [[-e REGEX] ...] ' \
+          '[[-i REGEX] ...] PATH ...'
 
         opts.on(
           '-d',
