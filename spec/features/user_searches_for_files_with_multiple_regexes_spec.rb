@@ -46,7 +46,16 @@ describe 'Searching for files with multiple regexes' do
 
   context 'no file paths provided as arguments' do
     context 'no files present in working directory' do
-      it 'returns empty output'
+      it 'returns empty output' do
+        Dir.mktmpdir do |empty_dir|
+          Dir.chdir(empty_dir) do
+            executable = Executable.run('-e "some_regex"')
+
+            expect(executable.error).to be_empty, executable.error
+            expect(executable.lines).to eq([])
+          end
+        end
+      end
     end
 
     context 'files present in working directory' do
