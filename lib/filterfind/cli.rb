@@ -8,7 +8,7 @@ module Filterfind
     end
 
     def run
-      $stdout.puts CommandLineOutput.new(merged_options).lines
+      $stdout.print CommandLineOutput.new(merged_options).lines
     rescue => error
       handle_error(error)
     end
@@ -28,7 +28,7 @@ module Filterfind
     def handle_error(error)
       case error
       when OptionParser::InvalidOption, OptionParser::MissingArgument,
-        OptionParser::InvalidArgument
+        OptionParser::InvalidArgument, NoRegexesProvided, InvalidPathArgument
         $stderr.puts error.message
         exit EX_USAGE
       else

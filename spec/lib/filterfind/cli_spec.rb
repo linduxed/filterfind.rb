@@ -5,6 +5,8 @@ module Filterfind
     describe '#run' do
       it 'returns a list of strings' do
         with_stubbed_stdout do
+          parser = double(:parser, parse: {})
+          allow(ArgumentParser).to receive(:new).and_return(parser)
           output_text = "firstFileName\nsecondFileName"
           output_generator = double(:output_generator, lines: output_text)
           allow(CommandLineOutput).to receive(:new).and_return(output_generator)
@@ -18,11 +20,14 @@ module Filterfind
 
       it 'forwards arguments to a parser' do
         with_stubbed_stdout do
-          parser = double(parse: {})
+          parser = double(:parser, parse: {})
           allow(ArgumentParser).to receive(:new).and_return(parser)
+          output_generator = double(:output_generator, lines: %w[two lines])
+          allow(CommandLineOutput).to receive(:new)
+            .and_return(output_generator)
           input_args = %w[-n 3]
 
-          CLI.new({ args: input_args }).run
+          CLI.new(args: input_args).run
 
           expect(ArgumentParser).to have_received(:new).with(input_args)
         end
