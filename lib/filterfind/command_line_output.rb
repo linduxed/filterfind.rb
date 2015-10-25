@@ -17,11 +17,17 @@ module Filterfind
       if filtered_filenames.empty?
         ''
       else
-        filtered_filenames.join("\n") + "\n"
+        remove_leading_dot_dir(filtered_filenames).join("\n") + "\n"
       end
     end
 
     private
+
+    def remove_leading_dot_dir(filenames)
+      filenames.map do |filename|
+        filename.gsub(%r{\A\./},'')
+      end
+    end
 
     def filtered_filenames
       @filtered_filenames ||= FileFilter.new(@filenames, all_regexes).filter

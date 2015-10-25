@@ -60,6 +60,24 @@ describe 'Searching for files with multiple regexes' do
 
     context 'files present in working directory' do
       it 'returns filenames of the files where all regexes matched'
+
+      it 'returns filenames without leading dot dirs' do
+        Dir.mktmpdir do |wrapping_dir|
+          Dir.chdir(wrapping_dir) do
+            matching_file = Tempfile.new('matching', wrapping_dir)
+            matching_file.write("___\nfoobar\n___\n")
+            matching_file.close
+
+            executable = Executable.run('-e "foobar"')
+
+            expect(executable.error).to be_empty, executable.error
+            expect(executable.lines.size).to eq(1)
+            expect(executable.lines.first).not_to match(%r{\A\./})
+
+            matching_file.delete
+          end
+        end
+      end
     end
   end
 end
