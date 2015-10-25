@@ -17,13 +17,13 @@ module Filterfind
           first_matching_file = 'first_good_path'
           second_matching_file = 'second_good_path'
           matching_and_invalid_byte_sequence = 'matching_but_bad'
-          allow(File).to receive(:readlines).with(first_matching_file)
-            .and_return(%w[perfectly matching])
-          allow(File).to receive(:readlines).with(second_matching_file)
-            .and_return(%w[perfectly matching])
-          allow(File).to receive(:readlines)
+          allow(File).to receive(:open).with(first_matching_file)
+            .and_yield(StringIO.new('perfectly matching'))
+          allow(File).to receive(:open).with(second_matching_file)
+            .and_yield(StringIO.new('perfectly matching'))
+          allow(File).to receive(:open)
             .with(matching_and_invalid_byte_sequence)
-            .and_return(['perfectly', 'matching', "\255"])
+            .and_yield(StringIO.new("perfectly matching \255"))
 
           output = CommandLineOutput.new(
             filenames: [
