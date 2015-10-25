@@ -119,10 +119,14 @@ module Filterfind
         context 'no paths provided' do
           it 'adds all files recursively from working dir to output hash' do
             args = %w[-e some_regex]
-            list_of_filenames = %w[foo_file bar_file baz_file]
-            allow(Find).to receive(:find).and_return(list_of_filenames)
-            allow(FileTest).to receive(:directory?).and_return(false)
-            expected_hash = { filenames: list_of_filenames }
+            filename = 'foo_file'
+            allow(Find).to receive(:find).with('.')
+              .and_return([filename])
+            allow(FileTest).to receive(:directory?).with('.')
+              .and_return(true)
+            allow(FileTest).to receive(:directory?).with(filename)
+              .and_return(false)
+            expected_hash = { filenames: [filename] }
 
             parsed_arguments = ArgumentParser.new(args).parse
 
