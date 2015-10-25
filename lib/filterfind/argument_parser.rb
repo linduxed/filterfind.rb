@@ -77,13 +77,15 @@ module Filterfind
     end
 
     def hash_with_filenames
-      filenames = all_filenames_in_cwd_or_expand_provided_paths(@paths)
-
-      if @dotfiles_allowed
-        @opt_hash.merge(filenames: filenames)
+      if @paths.empty?
+        filenames = FileFinder.all_filenames_in_cwd(@dotfiles_allowed)
       else
-        @opt_hash.merge(filenames: reject_dot_paths(filenames))
+        filenames = FileFinder.new(@paths, @dotfiles_allowed).expand_paths
       end
+
+      @opt_hash.merge(filenames: filenames)
+    rescue FileFinder::InvalidPath => error
+      raise(InvalidPathArgument, error.message)
     end
 
     private
@@ -93,36 +95,45 @@ module Filterfind
         @opt_hash[key] = [] if @opt_hash[key].nil?
       end
     end
+  end
 
-    def all_filenames_in_cwd_or_expand_provided_paths(paths)
-      if paths.empty?
-        recursively_find_all_files_in_cwd
+  class FileFinder
+    class InvalidPath < StandardError; end
+
+    def self.all_filenames_in_cwd(dotfiles_allowed)
+      new(['.'], dotfiles_allowed).expand_paths
+    end
+
+    def initialize(paths, dotfiles_allowed)
+      @paths = paths
+      @dotfiles_allowed = dotfiles_allowed
+    end
+
+    def expand_paths
+      check_all_paths_exist
+      expanded_paths = paths_with_directories_expanded
+
+      if @dotfiles_allowed
+        expanded_paths
       else
-        check_and_expand_paths(paths)
+        reject_dot_paths(expanded_paths)
       end
     end
 
-    def recursively_find_all_files_in_cwd
-      reject_directory_paths(Find.find('.'))
-    end
+    private
 
-    def check_and_expand_paths(paths)
-      check_all_paths_exist(paths)
-      paths_with_directories_expanded(paths)
-    end
-
-    def check_all_paths_exist(paths)
-      bad_paths = paths.reduce([]) do |bad, path|
+    def check_all_paths_exist
+      bad_paths = @paths.reduce([]) do |bad, path|
         File.exist?(path) ? bad : bad << path
       end
 
       unless bad_paths.empty?
-        raise(InvalidPathArgument, "invalid paths: #{bad_paths.join(', ')}")
+        raise(InvalidPath, "invalid paths: #{bad_paths.join(', ')}")
       end
     end
 
-    def paths_with_directories_expanded(paths)
-      paths.map do |path|
+    def paths_with_directories_expanded
+      @paths.map do |path|
         if FileTest.directory?(path)
           reject_directory_paths(Find.find(path))
         else
@@ -136,7 +147,7 @@ module Filterfind
     end
 
     def reject_dot_paths(paths)
-      paths.reject { |path| path =~ %r(/\..+) }
+      paths.reject { |path| path =~ %r{/\..+} }
     end
   end
 end
