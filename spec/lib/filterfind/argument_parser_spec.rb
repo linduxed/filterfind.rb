@@ -61,7 +61,6 @@ module Filterfind
           context 'when not used' do
             context 'user provides dot paths as arguments' do
               it 'adds regular files from provided dot path' do
-                pending
                 Dir.mktmpdir('.dot_dir') do |dot_dir|
                   args = ['-e', 'some_regex', dot_dir]
                   dotfile = Tempfile.new('.dotfile', dot_dir)

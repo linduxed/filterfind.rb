@@ -116,7 +116,10 @@ module Filterfind
       if @dotfiles_allowed
         expanded_paths
       else
-        reject_dot_paths(expanded_paths)
+        reject_dot_paths(
+          full_paths: expanded_paths,
+          allowed_prefixes: @paths
+        )
       end
     end
 
@@ -146,8 +149,11 @@ module Filterfind
       paths.reject { |path| FileTest.directory?(path) }
     end
 
-    def reject_dot_paths(paths)
-      paths.reject { |path| path =~ %r{/\..+} }
+    def reject_dot_paths(full_paths:, allowed_prefixes:)
+      full_paths.reject do |path|
+        prefix = allowed_prefixes.find { |prefix| path.match(/\A#{prefix}/) }
+        path.sub(prefix, '').match(%r{/\..+})
+      end
     end
   end
 end
